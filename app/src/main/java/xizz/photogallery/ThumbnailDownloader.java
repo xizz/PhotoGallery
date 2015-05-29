@@ -61,6 +61,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
 			final String url = mRequestMap.get(token);
 			if (url == null)
 				return;
+
 			byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(url);
 			final Bitmap bitmap =
 					BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
@@ -69,7 +70,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
 			mResponseHandler.post(new Runnable() {
 				@Override
 				public void run() {
-					if (mRequestMap.get(token).equals(url))
+					if (!url.equals(mRequestMap.get(token)))
 						return;
 					mRequestMap.remove(token);
 					mListener.onThumbnailDownloaded(token, bitmap);
