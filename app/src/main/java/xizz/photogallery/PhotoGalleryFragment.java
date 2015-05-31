@@ -46,7 +46,7 @@ public class PhotoGalleryFragment extends Fragment {
 		});
 		mThumbnailThread.start();
 		mThumbnailThread.getLooper();
-		Log.i(TAG, "Background thread started");
+		Log.d(TAG, "Background thread started");
 	}
 
 	@Override
@@ -91,6 +91,17 @@ public class PhotoGalleryFragment extends Fragment {
 	}
 
 	@Override
+	public void onPrepareOptionsMenu(Menu menu) {
+		super.onPrepareOptionsMenu(menu);
+
+		MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+		if (PollService.isServiceAlarmOn(getActivity()))
+			toggleItem.setTitle(R.string.stop_polling);
+		else
+			toggleItem.setTitle(R.string.start_polling);
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.menu_item_search:
@@ -100,6 +111,13 @@ public class PhotoGalleryFragment extends Fragment {
 				PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
 						.putString(FlickrFetchr.PREF_SEARCH_QUERY, null).commit();
 				updateItems();
+				return true;
+			case R.id.menu_item_toggle_polling:
+				boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+				PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+
+				getActivity().invalidateOptionsMenu();
+
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
