@@ -1,9 +1,9 @@
 package xizz.photogallery;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -16,8 +16,11 @@ import android.util.Log;
 import java.util.List;
 
 public class PollService extends IntentService {
-	private static final String TAG = "PollService";
+	public static final String PREF_IS_ALARM_ON = "isAlarmOn";
+	public static final String ACTION_SHOW_NOTIFICATION = "xizz.photogallery.SHOW_NOTIFICATION";
+	public static final String PERM_PRIVATE = "xizz.photogallery.PRIVATE";
 
+	private static final String TAG = "PollService";
 	private static final int POLL_INTERVAL = 1000 * 60;
 
 	public PollService() {
@@ -26,8 +29,7 @@ public class PollService extends IntentService {
 
 	public static void setServiceAlarm(Context context, boolean isOn) {
 		Intent i = new Intent(context, PollService.class);
-		PendingIntent pi = PendingIntent.getService(
-				context, 0, i, 0);
+		PendingIntent pi = PendingIntent.getService(context, 0, i, 0);
 
 		AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
@@ -38,6 +40,11 @@ public class PollService extends IntentService {
 			alarmManager.cancel(pi);
 			pi.cancel();
 		}
+
+		PreferenceManager.getDefaultSharedPreferences(context)
+				.edit()
+				.putBoolean(PollService.PREF_IS_ALARM_ON, isOn)
+				.commit();
 	}
 
 	public static boolean isServiceAlarmOn(Context context) {
@@ -89,12 +96,18 @@ public class PollService extends IntentService {
 					.setAutoCancel(true)
 					.build();
 
-			NotificationManager notificationManager = (NotificationManager)
-					getSystemService(NOTIFICATION_SERVICE);
+			showBackgroundNotification(0, notification);
 
-			notificationManager.notify(0, notification);
-			prefs.edit().putString(FlickrFetchr.PREF_LAST_RESULT_ID, resultId).commit();
+			prefs.edit().putString(FlickrFetchr.PREF_LAST_RESULT_ID, resultId).apply();
 		} else
 			Log.d(TAG, "Got a old result");
+	}
+
+	private void showBackgroundNotification(int requestCode, Notification notification) {
+		Intent i = new Intent(ACTION_SHOW_NOTIFICATION);
+		i.putExtra("REQUEST_CODE", requestCode);
+		i.putExtra("NOTIFICATION", notification);
+
+		sendOrderedBroadcast(i, PERM_PRIVATE, null, null, Activity.RESULT_OK, null, null);
 	}
 }
