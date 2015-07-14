@@ -51,7 +51,39 @@ public class FlickrFetchr {
 		return downloadGalleryItems(url);
 	}
 
-	public List<GalleryItem> downloadGalleryItems(String url) {
+	public String getUrl(String urlSpec) throws IOException {
+		return new String(getUrlBytes(urlSpec));
+	}
+
+	public byte[] getUrlBytes(String urlSpec) throws IOException {
+		HttpURLConnection connection = null;
+		InputStream in = null;
+		ByteArrayOutputStream out = null;
+		try {
+			URL url = new URL(urlSpec);
+			connection = (HttpURLConnection) url.openConnection();
+			out = new ByteArrayOutputStream();
+			in = connection.getInputStream();
+
+			if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
+				return new byte[0];
+
+			int bytesRead;
+			byte[] buffer = new byte[1024];
+			while ((bytesRead = in.read(buffer)) > 0)
+				out.write(buffer, 0, bytesRead);
+			return out.toByteArray();
+		} finally {
+			if (connection != null)
+				connection.disconnect();
+			if (in != null)
+				in.close();
+			if (out != null)
+				out.close();
+		}
+	}
+
+	private List<GalleryItem> downloadGalleryItems(String url) {
 		List<GalleryItem> items = new ArrayList<>();
 
 		try {
@@ -68,32 +100,6 @@ public class FlickrFetchr {
 			Log.e(TAG, "Failed to parse items", xppe);
 		}
 		return items;
-	}
-
-	public String getUrl(String urlSpec) throws IOException {
-		return new String(getUrlBytes(urlSpec));
-	}
-
-	public byte[] getUrlBytes(String urlSpec) throws IOException {
-		URL url = new URL(urlSpec);
-		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-		try {
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			InputStream in = connection.getInputStream();
-
-			if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
-				return new byte[0];
-
-			int bytesRead;
-			byte[] buffer = new byte[1024];
-			while ((bytesRead = in.read(buffer)) > 0)
-				out.write(buffer, 0, bytesRead);
-			out.close();
-			return out.toByteArray();
-		} finally {
-			connection.disconnect();
-		}
 	}
 
 	private void parseItems(List<GalleryItem> items, XmlPullParser parser)

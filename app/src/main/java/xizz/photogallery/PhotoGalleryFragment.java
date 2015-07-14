@@ -25,7 +25,7 @@ import java.util.List;
 
 public class PhotoGalleryFragment extends VisibleFragment {
 	private static final String TAG = "PhotoGalleryFragment";
-	ThumbnailDownloader<ImageView> mThumbnailThread;
+	private ThumbnailDownloader<ImageView> mThumbnailThread;
 	private GridView mGridView;
 	private List<GalleryItem> mItems;
 

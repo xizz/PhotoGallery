@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ThumbnailDownloader<T> extends HandlerThread {
-	private static final String TAG = "ThumbnailDownloader";
+	private static final String TAG = ThumbnailDownloader.class.getSimpleName();
 	private static final int MESSAGE_DOWNLOAD = 0;
 	Map<T, String> mRequestMap = Collections.synchronizedMap(new HashMap<T, String>());
 	private Handler mHandler;
